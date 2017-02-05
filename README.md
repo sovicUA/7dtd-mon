@@ -6,33 +6,24 @@ Example output.
 ==============
 Console
 -------
+```
 Header: -1
-
 Return Code: 73 
-
 Protocol Version: 17
-
 Server Name: xCloud Games Host
-
 World Type: Random Gen
-
 Short Game Name: 7DTD
-
 Long Game Name: 7 Days To Die
-
 MAX Players: 7
-
-Online Players: 0
-
+Online Players: 1
 Server Type: Dedicated server
-
 Operation System: Linux
-
 Protected: Public
 Game Version: 00.15.02
-
+```
 JSON
 ----
+```
 {
   "Header":-1,
   "ReturnCode":73,
@@ -49,3 +40,4 @@ JSON
   "Visibility":"Public",
   "Version":"00.15.02"
 }
+```

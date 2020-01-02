@@ -2,31 +2,29 @@ package sq7dtd
 
 import (
 	"bytes"
-	"log"
-	"fmt"
 	"encoding/binary"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log"
 	"net"
 	"strconv"
-	"errors"
 	"time"
-	"encoding/json"
 )
 
-
 type A2S_INFO struct {
-	Key			string
-	Host		string
-	Port		int
-	//Header	int32
-	ReturnCode	byte
-	Protocol	byte
-	ServerName	string
-	World		string
-	DescShort	string
-	DescLong	string
+	Key         string
+	Host        string
+	Port        int
+	ReturnCode  byte
+	Protocol    byte
+	ServerName  string
+	World       string
+	DescShort   string
+	DescLong    string
 	Players     byte
 	PlayersMAX  byte
-	Bots		byte
+	Bots        byte
 	ServerType  byte
 	Environment byte
 	Visibility  byte
@@ -72,11 +70,11 @@ func B2S(b []byte, i int) (string, int) {
 	return string(b[i:c]), c + 1
 }
 
-func Parse(b []byte) {
+func ParseInfo(b []byte) {
 	i := 6 // Index of data server name
 	// Header
 	// binary.Read(bytes.NewReader(b[:4]), binary.BigEndian, &server.Header)
-	// ReturnCode | Always equal to 'I' (0x49) 
+	// ReturnCode | Always equal to 'I' (0x49)
 	server.ReturnCode = b[4]
 	// Protocol
 	server.Protocol = b[5]
@@ -88,29 +86,37 @@ func Parse(b []byte) {
 	server.DescShort, i = B2S(b, i)
 	// Game Long Description
 	server.DescLong, i = B2S(b, i)
-	i++; i++ // +2 byte for next data
+	i++
+	i++ // +2 byte for next data
 	// Online Players
-	server.Players = b[i]; i++
+	server.Players = b[i]
+	i++
 	// MAX Players
-	server.PlayersMAX = b[i]; i++
+	server.PlayersMAX = b[i]
+	i++
 	// Bots
-	server.Bots = b[i]; i++
+	server.Bots = b[i]
+	i++
 	// Server Type
-	server.ServerType = b[i]; i++
+	server.ServerType = b[i]
+	i++
 	// Server Environment
-	server.Environment = b[i]; i++
+	server.Environment = b[i]
+	i++
 	// Protected
-	server.Visibility = b[i]; i++
+	server.Visibility = b[i]
+	i++
 	i++
 	// Version game
 	server.Version, i = B2S(b, i)
 }
 
-func Query(host string, port int) error {
+func QueryInfo(host string, port int) error {
 	// Server Query "A2S_INFO" message
 	message := []byte("\xFF\xFF\xFF\xFFTSource Engine Query\x00")
-	
-	server.Host = host; server.Port = port	
+
+	server.Host = host
+	server.Port = port
 	service := host + ":" + strconv.Itoa(port)
 	RemoteAddr, err := net.ResolveUDPAddr("udp", service)
 
@@ -120,7 +126,7 @@ func Query(host string, port int) error {
 		return err
 	}
 
-	// Timeout: 3 sec	
+	// Timeout: 3 sec
 	deadline := time.Now().Add(3 * time.Second)
 	err = conn.SetReadDeadline(deadline)
 	if err != nil {
@@ -133,7 +139,7 @@ func Query(host string, port int) error {
 	log.Printf("Established connection to %s \n", service)
 	log.Printf("Remote UDP address : %s \n", conn.RemoteAddr().String())
 	log.Printf("Local UDP client address : %s \n", conn.LocalAddr().String())
-	log.Printf("Send A2S_INFO message... \n") 
+	log.Printf("Send A2S_INFO message... \n")
 	***/
 	_, err = conn.Write(message)
 	if err != nil {
@@ -151,27 +157,27 @@ func Query(host string, port int) error {
 	var Header int32
 	binary.Read(bytes.NewReader(buffer[:4]), binary.BigEndian, &Header)
 	if Header == -1 && buffer[4] == 73 {
-		Parse(buffer)
+		ParseInfo(buffer)
 		return nil
 	}
-	
+
 	log.Println("UDP Server : ", addr)
 	log.Println("Received from UDP server : ", string(buffer[:n]))
 
 	for i := 0; i < len(buffer); i++ {
 		fmt.Printf("%x ", buffer[i])
 	}
-	
+
 	return errors.New("Failed to parse data")
 }
 
 func Json() string {
-	serverJson, err :=  json.Marshal(server)
+	serverJson, err := json.Marshal(server)
 	if err != nil {
-        log.Println(err)
+		log.Println(err)
 		return "{\"ReturnCode\":-1}"
-    }
-    return string(serverJson)
+	}
+	return string(serverJson)
 }
 
 func String() string {

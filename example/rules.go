@@ -13,12 +13,18 @@ func main() {
 
 	flag.Parse()
 
-	err := sq7dtd.QueryInfo(*host, *port)
+	err := sq7dtd.QueryRules(*host, *port)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	log.Println(sq7dtd.Json())
-	log.Println("\n" + sq7dtd.String())
+	// Get current server time
+	d, h, m, err := sq7dtd.getCurrentTime()
+	if err != nil {
+		log.Fatal(err)
+		return errors.New("Failed to convert current server time")
+	}
+	log.Printf("Day: %d Time: %02d:%02d", d, h, m)
+
 }
